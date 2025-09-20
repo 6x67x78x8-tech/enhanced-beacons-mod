@@ -1,0 +1,62 @@
+package com.yourname.enhancedbeacons.mixin;
+
+import com.yourname.enhancedbeacons.EnhancedBeaconsConfig;
+import net.minecraft.block.entity.BeaconBlockEntity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import java.util.List;
+
+@Mixin(BeaconBlockEntity.class)
+public class BeaconBlockEntityMixin {
+    
+    @Inject(method = "applyPlayerEffects", at = @At("HEAD"), cancellable = true)
+    private static void applyCustomRangeEffects(World world, BlockPos pos, int beaconLevel, 
+                                              RegistryEntry<StatusEffect> primaryEffect, 
+                                              RegistryEntry<StatusEffect> secondaryEffect, 
+                                              CallbackInfo ci) {
+        if (EnhancedBeaconsConfig.getInstance() == null) return;
+        
+        int customRange = EnhancedBeaconsConfig.getInstance().getBeaconRange(beaconLevel);
+        
+        if (primaryEffect != null) {
+            applyEffectToPlayersInRange(world, pos, customRange, primaryEffect, beaconLevel >= 4 ? 1 : 0);
+        }
+        
+        if (secondaryEffect != null && beaconLevel >= 4) {
+            applyEffectToPlayersInRange(world, pos, customRange, secondaryEffect, 0);
+        }
+        
+        ci.cancel();
+    }
+    
+    private static void applyEffectToPlayersInRange(World world, BlockPos pos, int range, 
+                                                   RegistryEntry<StatusEffect> effect, int amplifier) {
+        List<PlayerEntity> players = world.getNonSpectatingEntities(PlayerEntity.class, 
+            new net.minecraft.util.math.Box(pos).expand(range, range, 128.0));
+        
+        for (PlayerEntity player : players) {
+            player.addStatusEffect(new StatusEffectInstance(effect, 180, amplifier, true, true));
+        }
+    }
+    
+    @Inject(method = "isEffectAvailable", at = @At("HEAD"), cancellable = true)
+    private void addSaturationEffect(int level, RegistryEntry<StatusEffect> effect, 
+                                   CallbackInfoReturnable<Boolean> cir) {
+        EnhancedBeaconsConfig config = EnhancedBeaconsConfig.getInstance();
+        if (config != null && config.enableSaturationEffect) {
+            if (effect.equals(StatusEffects.SATURATION) && level >= 1) {
+                cir.setReturnValue(true);
+            }
+        }
+    }
+}
