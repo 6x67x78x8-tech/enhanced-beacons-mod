@@ -1,0 +1,108 @@
+package com.yourname.enhancedbeacons;
+
+import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+import com.terraformersmc.modmenu.api.ModMenuApi;
+import me.shedaniel.clothconfig2.api.ConfigBuilder;
+import me.shedaniel.clothconfig2.api.ConfigCategory;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
+
+public class ModMenuIntegration implements ModMenuApi {
+    
+    @Override
+    public ConfigScreenFactory<?> getModConfigScreenFactory() {
+        return ModMenuIntegration::createConfigScreen;
+    }
+    
+    private static Screen createConfigScreen(Screen parent) {
+        ConfigBuilder builder = ConfigBuilder.create()
+            .setParentScreen(parent)
+            .setTitle(Text.literal("Enhanced Beacons Configuration"));
+        
+        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+        ConfigCategory ranges = builder.getOrCreateCategory(Text.literal("Beacon Ranges"));
+        ConfigCategory effects = builder.getOrCreateCategory(Text.literal("Effects"));
+        
+        EnhancedBeaconsConfig config = EnhancedBeaconsConfig.getInstance();
+        
+        // Range multiplier settings
+        ranges.addEntry(entryBuilder.startDoubleField(Text.literal("Level 1 Range Multiplier"), config.level1RangeMultiplier)
+            .setDefaultValue(2.0)
+            .setMin(0.1)
+            .setMax(10.0)
+            .setTooltip(Text.literal("Multiplier for level 1 beacon range (default: 20 blocks)"))
+            .setSaveConsumer(newValue -> config.level1RangeMultiplier = newValue)
+            .build());
+            
+        ranges.addEntry(entryBuilder.startDoubleField(Text.literal("Level 2 Range Multiplier"), config.level2RangeMultiplier)
+            .setDefaultValue(2.0)
+            .setMin(0.1)
+            .setMax(10.0)
+            .setTooltip(Text.literal("Multiplier for level 2 beacon range (default: 30 blocks)"))
+            .setSaveConsumer(newValue -> config.level2RangeMultiplier = newValue)
+            .build());
+            
+        ranges.addEntry(entryBuilder.startDoubleField(Text.literal("Level 3 Range Multiplier"), config.level3RangeMultiplier)
+            .setDefaultValue(2.0)
+            .setMin(0.1)
+            .setMax(10.0)
+            .setTooltip(Text.literal("Multiplier for level 3 beacon range (default: 40 blocks)"))
+            .setSaveConsumer(newValue -> config.level3RangeMultiplier = newValue)
+            .build());
+            
+        ranges.addEntry(entryBuilder.startDoubleField(Text.literal("Level 4 Range Multiplier"), config.level4RangeMultiplier)
+            .setDefaultValue(2.0)
+            .setMin(0.1)
+            .setMax(10.0)
+            .setTooltip(Text.literal("Multiplier for level 4 beacon range (default: 50 blocks)"))
+            .setSaveConsumer(newValue -> config.level4RangeMultiplier = newValue)
+            .build());
+        
+        // Custom range overrides
+        ranges.addEntry(entryBuilder.startIntField(Text.literal("Custom Level 1 Range"), config.customLevel1Range)
+            .setDefaultValue(-1)
+            .setMin(-1)
+            .setMax(1000)
+            .setTooltip(Text.literal("Set exact range for level 1 beacons (-1 to use multiplier)"))
+            .setSaveConsumer(newValue -> config.customLevel1Range = newValue)
+            .build());
+            
+        ranges.addEntry(entryBuilder.startIntField(Text.literal("Custom Level 2 Range"), config.customLevel2Range)
+            .setDefaultValue(-1)
+            .setMin(-1)
+            .setMax(1000)
+            .setTooltip(Text.literal("Set exact range for level 2 beacons (-1 to use multiplier)"))
+            .setSaveConsumer(newValue -> config.customLevel2Range = newValue)
+            .build());
+            
+        ranges.addEntry(entryBuilder.startIntField(Text.literal("Custom Level 3 Range"), config.customLevel3Range)
+            .setDefaultValue(-1)
+            .setMin(-1)
+            .setMax(1000)
+            .setTooltip(Text.literal("Set exact range for level 3 beacons (-1 to use multiplier)"))
+            .setSaveConsumer(newValue -> config.customLevel3Range = newValue)
+            .build());
+            
+        ranges.addEntry(entryBuilder.startIntField(Text.literal("Custom Level 4 Range"), config.customLevel4Range)
+            .setDefaultValue(-1)
+            .setMin(-1)
+            .setMax(1000)
+            .setTooltip(Text.literal("Set exact range for level 4 beacons (-1 to use multiplier)"))
+            .setSaveConsumer(newValue -> config.customLevel4Range = newValue)
+            .build());
+        
+        // Effects settings
+        effects.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enable Saturation Effect"), config.enableSaturationEffect)
+            .setDefaultValue(true)
+            .setTooltip(Text.literal("Add Saturation effect to available beacon effects"))
+            .setSaveConsumer(newValue -> config.enableSaturationEffect = newValue)
+            .build());
+        
+        builder.setSavingRunnable(() -> {
+            EnhancedBeaconsConfig.save();
+        });
+        
+        return builder.build();
+    }
+}
