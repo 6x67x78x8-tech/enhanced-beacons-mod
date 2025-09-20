@@ -1,0 +1,69 @@
+package com.yourname.enhancedbeacons;
+
+import net.fabricmc.loader.api.FabricLoader;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class EnhancedBeaconsConfig {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String CONFIG_FILE = "enhanced_beacons.json";
+    private static EnhancedBeaconsConfig INSTANCE;
+    
+    public double level1RangeMultiplier = 2.0;
+    public double level2RangeMultiplier = 2.0;
+    public double level3RangeMultiplier = 2.0;
+    public double level4RangeMultiplier = 2.0;
+    public boolean enableSaturationEffect = true;
+    
+    public int customLevel1Range = -1;
+    public int customLevel2Range = -1;
+    public int customLevel3Range = -1;
+    public int customLevel4Range = -1;
+    
+    public static void init() {
+        File configDir = FabricLoader.getInstance().getConfigDir().toFile();
+        File configFile = new File(configDir, CONFIG_FILE);
+        
+        if (configFile.exists()) {
+            try (FileReader reader = new FileReader(configFile)) {
+                INSTANCE = GSON.fromJson(reader, EnhancedBeaconsConfig.class);
+                EnhancedBeaconsMain.LOGGER.info("Loaded config");
+            } catch (IOException e) {
+                EnhancedBeaconsMain.LOGGER.error("Failed to load config", e);
+                INSTANCE = new EnhancedBeaconsConfig();
+            }
+        } else {
+            INSTANCE = new EnhancedBeaconsConfig();
+            save();
+        }
+    }
+    
+    public static void save() {
+        File configDir = FabricLoader.getInstance().getConfigDir().toFile();
+        File configFile = new File(configDir, CONFIG_FILE);
+        
+        try (FileWriter writer = new FileWriter(configFile)) {
+            GSON.toJson(INSTANCE, writer);
+        } catch (IOException e) {
+            EnhancedBeaconsMain.LOGGER.error("Failed to save config", e);
+        }
+    }
+    
+    public static EnhancedBeaconsConfig getInstance() {
+        return INSTANCE;
+    }
+    
+    public int getBeaconRange(int level) {
+        switch (level) {
+            case 1: return customLevel1Range > 0 ? customLevel1Range : (int)(20 * level1RangeMultiplier);
+            case 2: return customLevel2Range > 0 ? customLevel2Range : (int)(30 * level2RangeMultiplier);
+            case 3: return customLevel3Range > 0 ? customLevel3Range : (int)(40 * level3RangeMultiplier);
+            case 4: return customLevel4Range > 0 ? customLevel4Range : (int)(50 * level4RangeMultiplier);
+            default: return 20;
+        }
+    }
+}
