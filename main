@@ -1,0 +1,11 @@
+enhanced-beacons-mod/
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/
+│       │       └── oliver/
+│       │           └── enhancedbeacons/
+│       │               └── mixin/
+│       └── resources/
+├── gradle/
+│   └── wrapper/
